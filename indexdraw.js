@@ -95,19 +95,22 @@ function updateBounds(coords) {
 
 // 포인트가 특정 폴리곤 내부에 있는지 확인합니다.
 // Ray casting algorithm 사용함
-function getPolygon(point) {
+function getPolygon(transformedPoint) {
   var foundPolygon;
   sortedPolygons.forEach(function (polygon) {
     var crossings = 0;
     for (var i = 0; i < polygon.path.length; i++) {
       var currPoint = polygon.path[i],
         nextPoint = polygon.path[(i + 1) % polygon.path.length];
-      if (currPoint.y > point.y != nextPoint.y > point.y) {
+      if (
+        currPoint.y > transformedPoint.y !=
+        nextPoint.y > transformedPoint.y
+      ) {
         var intersectX =
-          ((nextPoint.x - currPoint.x) * (point.y - currPoint.y)) /
+          ((nextPoint.x - currPoint.x) * (transformedPoint.y - currPoint.y)) /
             (nextPoint.y - currPoint.y) +
           currPoint.x;
-        if (point.x < intersectX) crossings++;
+        if (transformedPoint.x < intersectX) crossings++;
       }
     }
     if (crossings % 2 > 0) foundPolygon = polygon;
@@ -131,10 +134,16 @@ drawnPolygons.forEach(function (polygon) {
 
 // 마우스 움직임에 따라 폴리곤 이름을 출력합니다.
 canvas.addEventListener("mousemove", function (event) {
-  var polygon = getPolygon({
+  const point = {
     x: event.clientX - canvas.offsetLeft,
     y: event.clientY - canvas.offsetTop,
-  });
+  };
+  // 스케일과 오프셋을 고려한 마우스 좌표 변환
+  const transformedPoint = {
+    x: (point.x - offsetX - canvas.width / 2) / scale + canvas.width / 2,
+    y: (point.y - offsetY - canvas.height / 2) / scale + canvas.height / 2,
+  };
+  var polygon = getPolygon(transformedPoint);
   if (polygon) console.log(polygon.name);
 });
 function preSetupCtx() {
@@ -160,8 +169,10 @@ function drawGangneung() {
           ctx.lineTo(point.x, point.y);
         }
       });
-      ctx.strokeStyle = getRandomColor();
+      ctx.strokeStyle = "black";
       ctx.stroke();
+      ctx.fillStyle = getRandomColor();
+      ctx.fill();
       ctx.closePath();
       ctx.restore();
     });
@@ -209,8 +220,17 @@ canvas.addEventListener("mousedown", function (e) {
   isDragging = true;
   startX = e.clientX - offsetX;
   startY = e.clientY - offsetY;
-  console.log("lon", xToLon(e.clientX - canvas.offsetLeft));
-  console.log("lat", yToLat(e.clientY - canvas.offsetTop));
+  const point = {
+    x: e.clientX - canvas.offsetLeft,
+    y: e.clientY - canvas.offsetTop,
+  };
+  // 스케일과 오프셋을 고려한 마우스 좌표 변환
+  const transformedPoint = {
+    x: (point.x - offsetX - canvas.width / 2) / scale + canvas.width / 2,
+    y: (point.y - offsetY - canvas.height / 2) / scale + canvas.height / 2,
+  };
+  console.log("lon", xToLon(transformedPoint.x));
+  console.log("lat", yToLat(transformedPoint.y));
   canvas.style.cursor = "grabbing"; // 커서 변경
 });
 
