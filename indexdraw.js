@@ -3,12 +3,7 @@ let offsetX = 0; // X축 오프셋
 let offsetY = 0; // Y축 오프셋
 let isDragging = false; // 드래그 여부
 let startX, startY; // 드래그 시작 위치
-let markers = [
-  {
-    lon: 128.876151,
-    lat: 37.751908,
-  },
-]; // 마커들
+let markers = []; // 마커들
 
 var canvas = document.getElementById("myCanvas"),
   ctx = canvas.getContext("2d"),
