@@ -38,6 +38,7 @@ data.features.forEach(function (feature) {
     name: feature.properties.adm_nm,
     properties: feature.properties,
     paths: [],
+    lines: feature.lines,
   };
   feature.geometry.coordinates.forEach(function (coordsSet) {
     var currentPath = [];
@@ -47,11 +48,10 @@ data.features.forEach(function (feature) {
       coords.forEach(function (coord) {
         var x = lonToX(coord[0]),
           y = latToY(coord[1]);
-        currentPath.push({ x: x, y: y });
+        currentPath.push({ x: x, y: y, lon: coord[0], lat: coord[1] });
       });
       polygonData.paths.push(currentPath);
     });
-    polygonData.paths.push(currentPath);
   });
 
   drawnPolygons.push(polygonData);
@@ -155,6 +155,12 @@ function preSetupCtx() {
 // 그려진 폴리곤들 + 마커를 캔버스에 그립니다.
 function drawGangneung() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawGangneungFill();
+  drawGangneungStroke();
+  drawMark();
+}
+
+function drawGangneungFill() {
   drawnPolygons.forEach(function (polygon) {
     polygon.paths.forEach(function (path) {
       ctx.save();
@@ -170,14 +176,90 @@ function drawGangneung() {
         }
       });
       ctx.strokeStyle = "black";
-      ctx.stroke();
+      // ctx.stroke();
       ctx.fillStyle = colorMap.get(polygon.name);
       ctx.fill();
       ctx.closePath();
       ctx.restore();
     });
   });
+}
 
+function drawGangneungStroke() {
+  drawnPolygons.forEach(function (polygon) {
+    for (let pathIdx = 0; pathIdx < polygon.paths.length; pathIdx++) {
+      const path = polygon.paths[pathIdx];
+      if (polygon.lines) {
+        polygon.lines[pathIdx].forEach((line) => {
+          let fromIdx = -1;
+          let toIdx = -1;
+          path.forEach((point, idx) => {
+            if (
+              point.lon == line.fromLon &&
+              point.lat == line.fromLat &&
+              fromIdx == -1
+            ) {
+              fromIdx = idx;
+            }
+            if (
+              point.lon == line.toLon &&
+              point.lat == line.toLat &&
+              toIdx == -1
+            ) {
+              toIdx = idx;
+            }
+          });
+          ctx.save();
+          preSetupCtx();
+          ctx.beginPath();
+          var isFirstPoint = true;
+          path.forEach((point, idx) => {
+            if (fromIdx <= idx && idx <= toIdx) {
+              if (isFirstPoint) {
+                ctx.moveTo(point.x, point.y);
+                isFirstPoint = false;
+              } else {
+                ctx.lineTo(point.x, point.y);
+              }
+            }
+          });
+          if (line.style == "OUTER") {
+            ctx.strokeStyle = "black";
+          } else {
+            ctx.strokeStyle = "red";
+          }
+          ctx.stroke();
+          ctx.closePath();
+          ctx.restore();
+        });
+      }
+    }
+    // for (let lineIdx = 0; lineIdx < polygon.lines.length; lineIdx++) {
+    //   const line = polygon.lines[lineIdx];
+    //   console.log(line);
+    //   ctx.save();
+    //   preSetupCtx();
+    //   ctx.beginPath();
+    //   var isFirstPoint = true;
+    //   path.forEach(function (point) {
+    //     if (isFirstPoint) {
+    //       ctx.moveTo(point.x, point.y);
+    //       isFirstPoint = false;
+    //     } else {
+    //       ctx.lineTo(point.x, point.y);
+    //     }
+    //   });
+    //   ctx.strokeStyle = "black";
+    //   // ctx.stroke();
+    //   ctx.fillStyle = colorMap.get(polygon.name);
+    //   ctx.fill();
+    //   ctx.closePath();
+    //   ctx.restore();
+    // }
+  });
+}
+
+function drawMark() {
   markers.forEach((marker) => {
     console.log(marker);
     ctx.save();
