@@ -1112,7 +1112,7 @@ var data = {
       type: "Feature",
       properties: {
         OBJECTID: 1727,
-        adm_nm: "정동진 옥계권",
+        adm_nm: "정동진옥계권",
         adm_cd: "3203034",
         adm_cd2: "4215034000",
         sgg: "42150",

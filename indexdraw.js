@@ -4,6 +4,12 @@ let offsetY = 0; // Y축 오프셋
 let isDragging = false; // 드래그 여부
 let startX, startY; // 드래그 시작 위치
 let markers = []; // 마커들
+const colorMap = new Map();
+colorMap.set("주문진권", "#FFFBD4");
+colorMap.set("대관령권", "#D6F8FF");
+colorMap.set("시내권", "#FFE3F3");
+colorMap.set("정동진옥계권", "#FFF2E7");
+colorMap.set("경포권", "#DBFFEA");
 
 var canvas = document.getElementById("myCanvas"),
   ctx = canvas.getContext("2d"),
@@ -37,19 +43,13 @@ data.features.forEach(function (feature) {
     var currentPath = [];
 
     coordsSet.forEach(function (coords) {
-      if (coords.length <= 2) {
-        var x = lonToX(coords[0]),
-          y = latToY(coords[1]);
+      currentPath = [];
+      coords.forEach(function (coord) {
+        var x = lonToX(coord[0]),
+          y = latToY(coord[1]);
         currentPath.push({ x: x, y: y });
-      } else {
-        currentPath = [];
-        coords.forEach(function (coord) {
-          var x = lonToX(coord[0]),
-            y = latToY(coord[1]);
-          currentPath.push({ x: x, y: y });
-        });
-        polygonData.paths.push(currentPath);
-      }
+      });
+      polygonData.paths.push(currentPath);
     });
     polygonData.paths.push(currentPath);
   });
@@ -171,21 +171,13 @@ function drawGangneung() {
       });
       ctx.strokeStyle = "black";
       ctx.stroke();
-      ctx.fillStyle = getRandomColor();
+      ctx.fillStyle = colorMap.get(polygon.name);
       ctx.fill();
       ctx.closePath();
       ctx.restore();
     });
   });
 
-  function getRandomColor() {
-    var letters = "0123456789ABCDEF";
-    var color = "#";
-    for (var i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-  }
   markers.forEach((marker) => {
     console.log(marker);
     ctx.save();
